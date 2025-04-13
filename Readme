@@ -1,0 +1,109 @@
+Overview
+The goal of this task is to develop a microservice, containerize it using Docker, and deploy it into a Kubernetes cluster. This simulates real-world DevOps workflows and cloud-native development practices.
+Here, we will:
+Build a simple application (Node.js app recommended).
+
+Package it into a Docker container.
+
+Push the Docker image to a Docker registry like Docker Hub.
+
+Deploy the application on a Kubernetes cluster using Kubernetes Deployments and Services.
+
+Access the application through the service.
+
+. Set Up the Kubernetes Cluster
+Install Minikube (local Kubernetes) or enable Kubernetes on Docker Desktop.
+
+Required Tools:
+Git
+
+Visual Studio Code
+
+Node.js
+
+Docker (installed locally)
+
+Kubernetes (local or cloud-based cluster)
+
+kubectl (Kubernetes CLI)
+
+Docker CLI
+
+Set up the Kubernetes Cluster
+Install Minikube for a local cluster.
+Verify it's running:
+kubectl cluster-info
+kubectl get nodes
+Create the Docker Image
+Create a simple Dockerfile.
+# Use an official Node.js image
+FROM node:18
+
+# Set working directory in container
+WORKDIR /app
+
+# Copy package files and install dependencies**
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Copy the rest of the app files
+COPY . .
+
+# Expose application port
+EXPOSE 3000
+
+# Start the app
+CMD ["node", "server.js"]
+Build and tag the Docker image:
+docker tag node-app australia-southeast1-docker.pkg.dev/sit737-25t1-anand-b26c383/sit737ishi/node-app:latest
+
+Push it to Docker Hub
+docker push australia-southeast1-docker.pkg.dev/sit737-25t1-anand-b26c383/sit737ishi/node-app:latest   
+Create the Kubernetes Deployment
+Create a YAML file:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: node-app
+  template:
+    metadata:
+      labels:
+        app: node-app
+    spec:
+      containers:
+      - name: node-app
+        image: australia-southeast1-docker.pkg.dev/sit737-25t1-anand-b26c383/sit737ishi/node-app:latest
+        ports:
+        - containerPort: 8080
+      imagePullSecrets:
+      - name: regcred
+Deploy it:
+kubectl apply -f deployment.yaml
+Create the Kubernetes Service
+Create a service.yaml file:
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-app-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: node-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+Apply it:
+kubectl apply -f service.yaml
+
+Verify:
+Check pods:
+kubectl get pods
+Check services:
+kubectl get services
+Access the service via the external IP.
